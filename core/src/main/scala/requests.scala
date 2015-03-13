@@ -89,6 +89,10 @@ trait UrlVerbs extends RequestVerbs {
     case unit: Unit => subject
     case other      => this / other.toString
   }
+
+  def /? (segmentOpt: Option[String]): Req =
+    segmentOpt.map(this / _) getOrElse subject
+
   def secure = {
     subject.setUrl(RawUri(url).copy(scheme=Some("https")).toString)
   }
@@ -137,19 +141,23 @@ trait ParamVerbs extends RequestVerbs {
 }
 
 trait AuthVerbs extends RequestVerbs {
-  import com.ning.http.client.Realm.{RealmBuilder,AuthScheme}
-  def as(user: String, password: String) =
-    subject.setRealm(new RealmBuilder()
+  import com.ning.http.client.Realm, Realm.{RealmBuilder,AuthScheme}
+  def as(user: String, password: String): Req =
+    this.as(new RealmBuilder()
       .setPrincipal(user)
       .setPassword(password)
       .build())
-  def as_!(user: String, password: String) =
-    subject.setRealm(new RealmBuilder()
+  /** Basic auth, use with care. */
+  def as_!(user: String, password: String): Req =
+    this.as(new RealmBuilder()
       .setPrincipal(user)
       .setPassword(password)
       .setUsePreemptiveAuth(true)
       .setScheme(AuthScheme.BASIC)
       .build())
+
+  def as(realm: Realm) = subject.setRealm(realm)
+
 }
 
 trait RequestBuilderVerbs extends RequestVerbs {
