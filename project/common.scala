@@ -26,13 +26,15 @@ object Common {
 
     publishMavenStyle := true,
 
-    publishTo <<= version { (v: String) =>
-      val nexus = "https://oss.sonatype.org/"
-      if (v.trim.endsWith("SNAPSHOT")) 
-        Some("snapshots" at nexus + "content/repositories/snapshots") 
+    publishTo := {
+      val nexus = "http://nexus.becompany.ch/nexus/content/repositories/"
+      if (isSnapshot.value)
+        Some("3rd party snapshots" at nexus + "thirdparty-snapshots")
       else
-        Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+        Some("3rd party"  at nexus + "thirdparty")
     },
+
+    credentials += Credentials(Path.userHome / ".ivy2" / ".credentials"),
 
     publishArtifact in Test := false,
 
